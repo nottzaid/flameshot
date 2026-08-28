@@ -42,7 +42,7 @@
     <message>
         <location filename="../../src/tools/launcher/applaunchertool.cpp" line="23"/>
         <source>App Launcher</source>
-        <translation>ตัวเปิดแอป</translation>
+        <translation>เปิดแอป</translation>
     </message>
     <message>
         <location filename="../../src/tools/launcher/applaunchertool.cpp" line="33"/>
