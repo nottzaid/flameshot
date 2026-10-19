@@ -928,7 +928,8 @@ void GeneralConf::initCaptureActiveMonitor()
     m_captureActiveMonitor->setToolTip(
       tr("Automatically capture the monitor where the cursor is located "
          "instead of showing the monitor selection dialog. "
-         "This feature is not supported on Wayland."));
+         "On Wayland this works on Hyprland only, which uses the focused "
+         "monitor."));
     m_scrollAreaLayout->addWidget(m_captureActiveMonitor);
 
     connect(m_captureActiveMonitor,

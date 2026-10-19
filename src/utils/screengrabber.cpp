@@ -3,6 +3,7 @@
 #include "core/qguiappcurrentscreen.h"
 #include "utils/abstractlogger.h"
 #include "utils/confighandler.h"
+#include "utils/hyprland.h"
 #include "utils/monitorpreview.h"
 #include "utils/systemnotification.h"
 
@@ -173,16 +174,19 @@ QPixmap ScreenGrabber::selectMonitorAndCrop(const QPixmap& fullScreenshot,
 
     // Capture Active Monitor: auto-select monitor under cursor
     if (ConfigHandler().captureActiveMonitor()) {
+        QScreen* cursorScreen = nullptr;
         if (m_info.waylandDetected()) {
-            AbstractLogger::error()
-              << tr("Capture Active Monitor is not supported on Wayland due to "
-                    "Wayland security model.");
-            ok = false;
-            return QPixmap();
+            cursorScreen = Hyprland::focusedScreen();
+            if (cursorScreen == nullptr) {
+                AbstractLogger::error()
+                  << tr("Capture Active Monitor is not supported on Wayland "
+                        "due to Wayland security model.");
+                ok = false;
+                return QPixmap();
+            }
+        } else {
+            cursorScreen = QGuiAppCurrentScreen().currentScreen();
         }
-
-        QGuiAppCurrentScreen screenFinder;
-        QScreen* cursorScreen = screenFinder.currentScreen();
         int monitorIndex = screens.indexOf(cursorScreen);
         if (monitorIndex >= 0) {
             m_selectedMonitor = monitorIndex;
@@ -256,7 +260,7 @@ QPixmap ScreenGrabber::grabEntireDesktop(bool& ok, int preSelectedMonitor)
             AbstractLogger::error() << tr("Unable to capture screen");
             return QPixmap();
         }
-    } else {
+    } else if (!Hyprland::grabDesktop(screenshot)) {
         freeDesktopPortal(ok, screenshot);
         if (!ok) {
             AbstractLogger::error() << tr("Unable to capture screen");
@@ -317,7 +321,7 @@ QPixmap ScreenGrabber::grabFullDesktop(bool& ok)
         if (!ok) {
             AbstractLogger::error() << tr("Unable to capture screen");
         }
-    } else {
+    } else if (!Hyprland::grabDesktop(screenshot)) {
         freeDesktopPortal(ok, screenshot);
         if (!ok) {
             AbstractLogger::error() << tr("Unable to capture screen");
