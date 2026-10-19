@@ -16,6 +16,7 @@
 #include "core/qguiappcurrentscreen.h"
 #include "tools/copy/copytool.h"
 #include "utils/abstractlogger.h"
+#include "utils/layershell.h"
 #include "utils/screengrabber.h"
 #include "utils/screenshotsaver.h"
 #include "widgets/capture/colorpicker.h"
@@ -198,6 +199,12 @@ CaptureWidget::CaptureWidget(const CaptureRequest& req,
         if (selectedScreen != nullptr && windowHandle()) {
             windowHandle()->setScreen(selectedScreen);
         }
+#if !defined(FLAMESHOT_DEBUG_CAPTURE)
+        if (LayerShell::available()) {
+            LayerShell::makeOverlay(this, selectedScreen);
+            m_layerSurface = true;
+        }
+#endif
 #endif
     }
 
@@ -297,6 +304,11 @@ CaptureWidget::CaptureWidget(const CaptureRequest& req,
     initQuitPrompt();
 
     updateCursor();
+}
+
+bool CaptureWidget::isLayerSurface() const
+{
+    return m_layerSurface;
 }
 
 CaptureWidget::~CaptureWidget()

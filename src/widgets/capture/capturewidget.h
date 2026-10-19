@@ -53,6 +53,8 @@ public:
     ~CaptureWidget();
 
     QPixmap pixmap();
+    // Shown as a layer-shell overlay: show() it, never showFullScreen().
+    bool isLayerSurface() const;
     void setCaptureToolObjects(const CaptureToolObjects& captureToolObjects);
 #if !defined(DISABLE_UPDATE_CHECKER)
     void showAppUpdateNotification(const QString& appLatestVersion,
@@ -178,6 +180,7 @@ private:
     bool m_newSelection;
     bool m_movingSelection;
     bool m_captureDone;
+    bool m_layerSurface = false;
     bool m_previewEnabled;
     bool m_adjustmentButtonPressed;
     bool m_configError;
