@@ -10,6 +10,11 @@ project(
   flameshot
   VERSION ${FLAMESHOT_VERSION}
   LANGUAGES CXX)
+# wayland-scanner generates the protocol glue as C; enabled here, before any
+# fetched project, so every directory gets it
+if (USE_IMAGE_COPY_CAPTURE)
+  enable_language(C)
+endif()
 set(PROJECT_NAME_CAPITALIZED "Flameshot")
 
 include(FetchContent)
@@ -84,6 +89,7 @@ option(USE_BUNDLED_KDSINGLEAPPLICATION "Use a bundled version of the KDSingleApp
 option(USE_LAUNCHER_ABSOLUTE_PATH "Use absolute path for the desktop launcher" ON)
 option(USE_WAYLAND_CLIPBOARD "USE KF Gui Wayland Clipboard" OFF)
 option(USE_LAYER_SHELL "Show the capture overlay as a wlr-layer-shell surface on Wayland" OFF)
+option(USE_IMAGE_COPY_CAPTURE "Grab a single Wayland output with ext-image-copy-capture-v1" OFF)
 option(DISABLE_UPDATE_CHECKER "Disable check for updates" OFF)
 option(ENABLE_IMGUR "Enable Imgur Uploader" OFF)
 

@@ -6,6 +6,7 @@ target_sources(
           screengrabber.h
           layershell.h
           hyprland.h
+          outputcapture.h
           systemnotification.h
           valuehandler.h
           strfparse.h
@@ -18,6 +19,7 @@ target_sources(
           screengrabber.cpp
           layershell.cpp
           hyprland.cpp
+          outputcapture.cpp
           monitorpreview.cpp
           confighandler.cpp
           systemnotification.cpp

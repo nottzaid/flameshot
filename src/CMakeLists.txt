@@ -29,6 +29,16 @@ if (USE_LAYER_SHELL)
     pkg_check_modules(WaylandClient REQUIRED IMPORTED_TARGET wayland-client)
 endif()
 
+if (USE_IMAGE_COPY_CAPTURE)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(WaylandClient REQUIRED IMPORTED_TARGET wayland-client)
+    pkg_get_variable(WAYLAND_PROTOCOLS_DIR wayland-protocols pkgdatadir)
+    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    if (NOT WAYLAND_PROTOCOLS_DIR OR NOT WAYLAND_SCANNER)
+        message(FATAL_ERROR "USE_IMAGE_COPY_CAPTURE needs wayland-protocols and wayland-scanner")
+    endif()
+endif()
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -224,6 +234,32 @@ endif()
 if (USE_LAYER_SHELL)
   target_compile_definitions(flameshot PRIVATE USE_LAYER_SHELL=1)
   target_link_libraries(flameshot LayerShellQt::Interface PkgConfig::WaylandClient)
+endif()
+
+if (USE_IMAGE_COPY_CAPTURE)
+  # ext-image-capture-source refers to ext-foreign-toplevel-list's handle
+  foreach(protocol ext-foreign-toplevel-list-v1 ext-image-capture-source-v1
+                   ext-image-copy-capture-v1)
+    string(REGEX REPLACE "-v[0-9]+$" "" protocol_dir ${protocol})
+    set(protocol_xml ${WAYLAND_PROTOCOLS_DIR}/staging/${protocol_dir}/${protocol}.xml)
+    set(protocol_header ${CMAKE_CURRENT_BINARY_DIR}/${protocol}-client-protocol.h)
+    set(protocol_code ${CMAKE_CURRENT_BINARY_DIR}/${protocol}-protocol.c)
+    add_custom_command(
+      OUTPUT ${protocol_header}
+      COMMAND ${WAYLAND_SCANNER} client-header ${protocol_xml} ${protocol_header}
+      DEPENDS ${protocol_xml})
+    add_custom_command(
+      OUTPUT ${protocol_code}
+      COMMAND ${WAYLAND_SCANNER} private-code ${protocol_xml} ${protocol_code}
+      DEPENDS ${protocol_xml})
+    target_sources(flameshot PRIVATE ${protocol_header} ${protocol_code})
+  endforeach()
+  # Only the capture code needs the protocol headers
+  set_source_files_properties(
+    utils/outputcapture.cpp
+    PROPERTIES COMPILE_DEFINITIONS USE_IMAGE_COPY_CAPTURE=1
+               INCLUDE_DIRECTORIES ${CMAKE_CURRENT_BINARY_DIR})
+  target_link_libraries(flameshot PkgConfig::WaylandClient)
 endif()
 
 if (APPLE)

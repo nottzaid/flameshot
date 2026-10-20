@@ -5,6 +5,7 @@
 #include "utils/confighandler.h"
 #include "utils/hyprland.h"
 #include "utils/monitorpreview.h"
+#include "utils/outputcapture.h"
 #include "utils/systemnotification.h"
 
 #include <QApplication>
@@ -249,6 +250,15 @@ QPixmap ScreenGrabber::grabEntireDesktop(bool& ok, int preSelectedMonitor)
     return screenshot;
 
 #elif defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    // When the monitor is known up front, copy only that output.
+    if (m_info.waylandDetected()) {
+        QScreen* screen = waylandTargetScreen(preSelectedMonitor);
+        if (screen != nullptr && OutputCapture::grab(screen, screenshot)) {
+            m_selectedMonitor = QGuiApplication::screens().indexOf(screen);
+            return screenshot;
+        }
+    }
+
     if (!m_info.waylandDetected() && ConfigHandler().useX11LegacyScreenshot()) {
         qWarning() << "Using deprecated legacy X11 screenshot method. "
                       "Consider installing xdg-desktop-portal for your "
@@ -281,6 +291,21 @@ QPixmap ScreenGrabber::grabEntireDesktop(bool& ok, int preSelectedMonitor)
     }
 
     return selectMonitorAndCrop(screenshot, ok);
+}
+
+QScreen* ScreenGrabber::waylandTargetScreen(int preSelectedMonitor)
+{
+    const QList<QScreen*> screens = QGuiApplication::screens();
+    if (preSelectedMonitor >= 0 && preSelectedMonitor < screens.size()) {
+        return screens[preSelectedMonitor];
+    }
+    if (screens.size() == 1) {
+        return screens.first();
+    }
+    if (ConfigHandler().captureActiveMonitor()) {
+        return Hyprland::focusedScreen();
+    }
+    return nullptr;
 }
 
 QPixmap ScreenGrabber::grabFullDesktop(bool& ok)
