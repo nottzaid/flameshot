@@ -37,6 +37,9 @@ private:
     void adjustDevicePixelRatio(QPixmap& pixmap);
     QWidget* createMonitorPreviews(const QPixmap& fullScreenshot);
     QPixmap cropToMonitor(const QPixmap& fullScreenshot, int monitorIndex);
+    // The screen to copy on its own: the pre-selected one, the only one,
+    // or Hyprland's focused one under "Capture active monitor".
+    QScreen* waylandTargetScreen(int preSelectedMonitor);
     QPixmap windowsScreenshot(int wid);
     QPixmap x11LegacyScreenshot();
 
